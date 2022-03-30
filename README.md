@@ -28,6 +28,7 @@ To view instructions for deploying the MATLAB Parallel Server reference architec
 
 | Release |
 | ------- |
+| [R2022a](releases/R2022a/README.md) |
 | [R2021b](releases/R2021b/README.md) |
 
 
