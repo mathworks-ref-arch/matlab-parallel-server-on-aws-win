@@ -22,15 +22,23 @@ The following guide will help you automate the process of launching MATLAB Paral
 
 Use this reference architecture to control every aspect of your cloud resources. Alternatively, for a simpler but less customizable method of launching a MATLAB Parallel Server cluster in AWS (running on Linux virtual machines), try [MathWorks Cloud Center](https://mathworks.com/help/cloudcenter/mathworks-cloud-center.html).
 
+This reference architecture has been reviewed and qualified by AWS.
+
+![AWS Qualified Software badge](img/aws-qualified-software.png)
+
 # Deployment Steps
 
 To view instructions for deploying the MATLAB Parallel Server reference architecture, select a MATLAB release:
 
-| Release |
-| ------- |
-| [R2022a](releases/R2022a/README.md) |
-| [R2021b](releases/R2021b/README.md) |
-
+| Windows | Linux |
+| ------- | ----- |
+| [R2022a](releases/R2022a/README.md) | [R2022a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2022a/README.md) |
+| [R2021b](releases/R2021b/README.md) | [R2021b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2021b/README.md) |
+|  | [R2021a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2021a/README.md) |
+|  | [R2020b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2020b/README.md) |
+|  | [R2020a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2020a/README.md) |
+|  | [R2019b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2019b/README.md) |
+|  | [R2019a\_and\_older](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2019a_and_older/README.md) |
 
 # Learn About Cluster Architecture
 
