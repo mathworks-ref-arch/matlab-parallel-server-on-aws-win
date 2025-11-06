@@ -3,70 +3,16 @@
   "Mappings": {
     "RegionMap": {
       "us-east-1": {
-        "AMI": "ami-0287a1050878afb63"
+        "AMI": "ami-094de84b15c357449"
       },
       "us-west-2": {
-        "AMI": "ami-0acc22740b146f0b3"
+        "AMI": "ami-0de5ad01dd841687c"
       },
       "eu-west-1": {
-        "AMI": "ami-059c125e18f27926d"
+        "AMI": "ami-0cc22ba08f347234e"
       },
       "ap-northeast-1": {
-        "AMI": "ami-0393b975a2103c7ae"
-      },
-      "us-east-2": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "us-west-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "ca-central-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "eu-central-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "eu-west-2": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "eu-west-3": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "eu-north-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "sa-east-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "me-south-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "ap-east-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "ap-south-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "ap-northeast-2": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "ap-southeast-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "ap-southeast-2": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "us-gov-east-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "us-gov-west-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "cn-north-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
-      },
-      "cn-northwest-1": {
-        "AMI": "Enter the ID of a custom AMI in this region."
+        "AMI": "ami-0323cb31ab37700ce"
       }
     }
   },
