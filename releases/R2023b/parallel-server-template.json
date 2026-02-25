@@ -5,56 +5,56 @@
       "us-east-1": {
         "AMI": "ami-0634f6c1db394a4ee"
       },
-      "us-east-2": {
-        "AMI": "ami-0af5a317c779a2ec8"
-      },
-      "us-west-1": {
-        "AMI": "ami-0342220d0532cb537"
-      },
       "us-west-2": {
         "AMI": "ami-0dbacb41617a049ba"
-      },
-      "ca-central-1": {
-        "AMI": "ami-03174f4bf72cb2a8e"
-      },
-      "eu-central-1": {
-        "AMI": "ami-0c155bcb40f918762"
       },
       "eu-west-1": {
         "AMI": "ami-0baf659c5bb0554ca"
       },
-      "eu-west-2": {
-        "AMI": "ami-0ba7bc877ce3a6fe5"
-      },
-      "eu-west-3": {
-        "AMI": "ami-010de950a99d55b98"
-      },
-      "eu-north-1": {
-        "AMI": "ami-0a6377f5e63296dd7"
-      },
-      "sa-east-1": {
-        "AMI": "ami-03c44e8766045680e"
-      },
-      "me-south-1": {
-        "AMI": "ami-044bf3aaec594c8f3"
-      },
-      "ap-east-1": {
-        "AMI": "ami-05d8bd68d394f6e6e"
-      },
-      "ap-south-1": {
-        "AMI": "ami-071d9a94739f92fd4"
-      },
       "ap-northeast-1": {
         "AMI": "ami-08745b2e520093855"
       },
+      "us-east-2": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "us-west-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "ca-central-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "eu-central-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "eu-west-2": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "eu-west-3": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "eu-north-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "sa-east-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "me-south-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "ap-east-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
+      "ap-south-1": {
+        "AMI": "Enter the ID of a custom AMI in this region."
+      },
       "ap-northeast-2": {
-        "AMI": "ami-080001563d6d866e3"
+        "AMI": "Enter the ID of a custom AMI in this region."
       },
       "ap-southeast-1": {
-        "AMI": "ami-0ee3919d31fc09aaf"
+        "AMI": "Enter the ID of a custom AMI in this region."
       },
       "ap-southeast-2": {
-        "AMI": "ami-052cef2a385dd2313"
+        "AMI": "Enter the ID of a custom AMI in this region."
       }
     }
   },

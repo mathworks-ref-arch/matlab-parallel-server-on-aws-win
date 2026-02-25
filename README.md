@@ -25,24 +25,43 @@ You are responsible for the cost of the AWS services you use when you create clo
 
 # Deployment Steps
 
+By default, the MATLAB Parallel Server reference architectures below launch prebuilt machine images, described in [Learn about Cluster Architecture](#learn-about-cluster-architecture).
+Using a prebuilt machine image is the easiest way to deploy a MATLAB Parallel Server reference architecture.
+Prebuilt images are provided for the five most recent MATLAB releases.
+Alternatively, to build your own machine image,
+see [Build and Deploy Your Own Machine Image](#build-and-deploy-your-own-machine-image).
+You can also use this workflow to install an earlier MATLAB release.
+
+## Deploy Prebuilt Machine Image
+
 To view instructions for deploying the MATLAB Parallel Server reference architecture, select a MATLAB release:
 
-| Linux | Windows |
-| ----- | ------- |
-| [R2025b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2025b/README.md) | [R2025b](releases/R2025b/README.md) |
-| [R2025a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2025a/README.md) | [R2025a](releases/R2025a/README.md) |
-| [R2024b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2024b/README.md) | [R2024b](releases/R2024b/README.md) |
-| [R2024a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2024a/README.md) | [R2024a](releases/R2024a/README.md) |
-| [R2023b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2023b/README.md) | [R2023b](releases/R2023b/README.md) |
-| [R2023a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2023a/README.md) | [R2023a](releases/R2023a/README.md) |
-| [R2022b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2022b/README.md) | [R2022b](releases/R2022b/README.md) |
-| [R2022a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2022a/README.md) | [R2022a](releases/R2022a/README.md) |
-| [R2021b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2021b/README.md) | [R2021b](releases/R2021b/README.md) |
-| [R2021a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2021a/README.md) |  |
-| [R2020b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2020b/README.md) |  |
-| [R2020a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2020a/README.md) |  |
-| [R2019b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2019b/README.md) |  |
-| [R2019a\_and\_older](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2019a_and_older/README.md) |  |
+| Linux | Windows | Status |
+| ----- | ------- | ------- |
+| [R2025b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2025b/README.md) | [R2025b](releases/R2025b/README.md) | ✅ Prebuilt available. |
+| [R2025a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2025a/README.md) | [R2025a](releases/R2025a/README.md) | ✅ Prebuilt available. |
+| [R2024b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2024b/README.md) | [R2024b](releases/R2024b/README.md) | ✅ Prebuilt available. |
+| [R2024a](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2024a/README.md) | [R2024a](releases/R2024a/README.md) | ⚠️ Prebuilt will be removed in September 2026. |
+| [R2023b](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/releases/R2023b/README.md) | [R2023b](releases/R2023b/README.md) | ⚠️ Prebuilt will be removed in March 2026. |
+| [Earlier/Custom](https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws/tree/master/packer/v1) | [Earlier/Custom](./packer/v1) | For earlier MATLAB releases, you must build your own machine image. |
+
+The above instructions allow you to launch instances based on the latest prebuilt MathWorks&reg; Amazon Machine Images (AMIs).
+
+## Build and Deploy Your Own Machine Image
+
+For details of the scripts which form the basis of the MathWorks Windows AMI build process,
+see [Build Your Own Machine Image](./packer/v1).
+You can use these scripts to build a custom Windows machine image for running MATLAB Parallel Server on Amazon Web Services.
+You can then deploy this custom image with the MathWorks infrastructure as code (IaC) templates.
+
+You can customize the MATLAB release which is installed as part of this custom build.
+This includes MATLAB releases supported by the prebuilt images, as well as earlier MATLAB releases.
+For more details,
+see [Customize MATLAB Parallel Server Release to Install](./packer/v1#customize-matlab-parallel-server-release-to-install).
+
+Platform engineering teams can use these scripts to take advantage of optimizations MathWorks has developed
+for running MathWorks products in the cloud.
+For more details, see [What are the advantages of building images with MathWorks scripts?](#what-are-the-advantages-of-building-images-with-mathworks-scripts)
 
 
 # Learn About Cluster Architecture
@@ -118,11 +137,20 @@ Before enabling Spot Instances, consider these three aspects:
 
 * Parameters for the VPC and subnet in this CloudFormation template: Each Availability Zone in a region has a different capacity available for Spot Instances. To increase the likelihood of obtaining Spot Instances for your cluster, ensure that your VPC has subnets in multiple Availability Zones in the region.
 
+### What are the advantages of building images with MathWorks scripts?
+
+Images built with MathWorks scripts are optimized and tested for MathWorks workflows.
+The images are deployed by MathWorks CloudFormation templates following AWS best practices.
+
+The warmup scripts found in [startup](./packer/v1/startup) allow you to start MATLAB faster. The CloudFormation template uses these scripts to automatically initialize MathWorks files on the instance. These scripts are automatically included in both the prebuilt images and the images that you build using the instructions in [Deployment Steps](#deployment-steps).
+
+Without the optimization scripts, starting a large software application, such as MATLAB, for the first time can potentially take tens of minutes. Subsequent starts of the large software application will be faster. This is because AWS initializes the storage for the EC2 instance, as described in [Initialize Amazon EBS volumes](https://docs.aws.amazon.com/ebs/latest/userguide/ebs-initialize.html).
+
 # Technical Support
 If you require assistance or have a request for additional features or capabilities, contact [MathWorks Technical Support](https://www.mathworks.com/support/contact_us.html).
 
 ----
 
-Copyright 2021-2025 The MathWorks, Inc.
+Copyright 2021-2026 The MathWorks, Inc.
 
 ----
