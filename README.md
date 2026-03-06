@@ -57,12 +57,11 @@ You can then deploy this custom image with the MathWorks infrastructure as code 
 You can customize the MATLAB release which is installed as part of this custom build.
 This includes MATLAB releases supported by the prebuilt images, as well as earlier MATLAB releases.
 For more details,
-see [Customize MATLAB Parallel Server Release to Install](./packer/v1#customize-matlab-parallel-server-release-to-install).
+see [Customize MATLAB Paralle Server Release to Install](./packer/v1#customize-matlab-parallel-server-release-to-install).
 
 Platform engineering teams can use these scripts to take advantage of optimizations MathWorks has developed
 for running MathWorks products in the cloud.
 For more details, see [What are the advantages of building images with MathWorks scripts?](#what-are-the-advantages-of-building-images-with-mathworks-scripts)
-
 
 # Learn About Cluster Architecture
 

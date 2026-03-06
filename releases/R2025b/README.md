@@ -11,6 +11,7 @@ Click the **Launch Stack** button for your desired region below to deploy the cl
 | **eu-west-1** | [![alt text](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png "Start an cluster using the template")](https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/create/review?templateURL=https://matlab-parallel-server-aws-win-refarch.s3.amazonaws.com/R2025b/parallel-server-template.json) |
 | **ap-northeast-1** | [![alt text](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png "Start an cluster using the template")](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/create/review?templateURL=https://matlab-parallel-server-aws-win-refarch.s3.amazonaws.com/R2025b/parallel-server-template.json) |
 
+
 To deploy the cluster in a region not listed above, see [Deploy Cluster in a Custom Region](#deploy-cluster-in-a-custom-region).
 
 ## Step 2. Configure the Cloud Resources
@@ -116,7 +117,9 @@ To optimize the number of Amazon EC2&reg; instances running MATLAB workers, enab
 
 When autoscaling is disabled, the AWS Auto Scaling group deploys `Number of worker nodes` instances. To change the number of worker nodes, use the AWS Management Console.
 
-If you enable autoscaling, the [desired capacity](https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-capacity-limits.html) of the AWS Auto Scaling group is regulated by the number of workers needed by the cluster. The number of Amazon EC2 instances is initially set at `Number of worker nodes`. This number fluctuates between the `Minimum` and `Maximum number of worker nodes`. To change these limits after you create the stack, use the AWS Management Console. To change the amount of time idle nodes are preserved, adjust the value of the tag `mwWorkerIdleTimeoutMinutes`.
+If you enable autoscaling, the [desired capacity](https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-capacity-limits.html) of the AWS Auto Scaling group is regulated by the number of workers needed by the cluster. The number of Amazon EC2 instances is initially set at `Number of worker nodes`. This number fluctuates between the `Minimum` and `Maximum number of worker nodes`. To change these limits after you create the stack, use the AWS Management Console.
+
+To change the amount of time idle worker nodes are preserved, adjust the value of the tag `mwWorkerIdleTimeoutMinutes` in the Auto Scaling group (default: 10 minutes). See https://docs.aws.amazon.com/autoscaling/ec2/userguide/add-tags.html#add-tags-console to find the steps to modify tags on an Auto Scaling group.
 
 To disable autoscaling in a deployed stack, redeploy the stack with autoscaling disabled.
 
@@ -140,7 +143,7 @@ MathWorks provides prebuilt Amazon Machine Images (AMIs) only in the regions lis
 
 1. **Copy AMI into your account**: Use this AWS quick-create link to copy the latest MATLAB Parallel Server AMI on Windows into your AWS account. Clicking the link opens a CloudFormation template with prepopulated fields. Set the AWS region in the AWS console to your desired region and deploy the template to copy the AMI. Copying takes 5 to 15 minutes. You are responsible for the costs associated with the storage of this AMI and its snapshots in your AWS account. To save costs, delete this AMI and the snapshots if you no longer need it.
 
-    [![alt text](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png "Copy an AMI into your AWS account")](https://console.aws.amazon.com/cloudformation/home#/stacks/create/review?templateURL=https://mathworks-reference-architectures-templates.s3.amazonaws.com/copy-ami-lambda/v1/0/0/copy-ami-lambda.yml&stackName=Copy-of-MATLAB-Parallel-Server-R2025b-AMI&param_SourceAmiId=ami-094de84b15c357449&param_SourceRegion=us-east-1&param_AmiName=Copy%20of%20MATLAB%20Parallel%20Server%20Windows%20R2025b&param_ReferenceTag=https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws-win&param_MWTemplateUrl=https://matlab-parallel-server-aws-win-refarch.s3.amazonaws.com/R2025b/parallel-server-template.json)
+    [![alt text](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png "Copy an AMI into your AWS account")](https://console.aws.amazon.com/cloudformation/home#/stacks/create/review?templateURL=https://mathworks-reference-architectures-templates.s3.amazonaws.com/copy-ami-lambda/v1/0/0/copy-ami-lambda.yml&stackName=Copy-of-MATLAB-Parallel-Server--AMI&param_SourceAmiId=ami-09b1e9cddc1a2241c&param_SourceRegion=us-east-1&param_AmiName=Copy%20of%20MATLAB%20Parallel%20Server%20Windows%20&param_ReferenceTag=https://github.com/mathworks-ref-arch/matlab-parallel-server-on-aws-win&param_MWTemplateUrl=https://matlab-parallel-server-aws-win-refarch.s3.amazonaws.com/R2025b/parallel-server-template.json)
 
 2. **Deploy a cluster using your copied AMI**: After your copy is complete and your AMI is ready, use the `LaunchClusterWithCopiedAmi` link in the outputs tab to deploy a cluster in your desired region. You can also share this link or the Custom AMI ID with others in your AWS account to allow them to deploy clusters using the same AMI.
 
