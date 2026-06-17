@@ -3,10 +3,13 @@
 from abc import ABC, abstractmethod
 import asyncio
 import json
+import logging
 from pathlib import Path
 import subprocess
-import sys
 from typing import Dict, NamedTuple, Set
+
+
+logger = logging.getLogger('mw.autoscaling.os_interface')
 
 
 # Limit the number of concurrent calls to MJS
@@ -52,7 +55,7 @@ class AbstractOSInterface(ABC):
                 return info
 
             except KeyError:
-                print(f'Key error when accessing {data}.', file=sys.stderr)
+                logger.error('Key error when accessing %s.', data)
 
         return None
 
@@ -129,7 +132,7 @@ class AbstractOSInterface(ABC):
 
         result = subprocess.run([executable, *args], capture_output=True)
         if result.returncode != 0:
-            print(result.stdout, file=sys.stderr)
+            logger.error('Failed to set cluster capacity: %s', result.stdout)
 
         return result.returncode == 0
 
@@ -175,9 +178,8 @@ class AbstractOSInterface(ABC):
         if result.returncode == 0:
             return True
 
-        else:
-            print(f"Failed. Return code: {result.returncode}")
-            print(result.stdout, file=sys.stderr)
+        logger.error("Failed to stop workers locally. Return code: %s, output: %s",
+                     result.returncode, result.stdout)
 
         return False
 
@@ -224,8 +226,7 @@ class AbstractOSInterface(ABC):
             output = json.loads(result.stdout)
             return output['jobManagers'].pop()
 
-        else:
-            print(result.stdout, file=sys.stderr)
+        logger.error('Failed to get resize status: %s', result.stdout)
 
         return None
 
@@ -297,12 +298,12 @@ class AbstractOSInterface(ABC):
                     return output['workerGroup']['status']
 
                 else:
-                    # Bad host or MJS is not running (may be a new node)
-                    print(stdout, stderr, file=sys.stderr)
+                    logger.error('nodestatus failed for %s: stdout=%s, stderr=%s',
+                                 hostname, stdout, stderr)
 
             except asyncio.TimeoutError:
-                print(f'Command {executable} {args} timed-out after '
-                      f'{NODESTATUS_TIMEOUT}s.', file=sys.stderr)
+                logger.error('Command %s %s timed-out after %ds.',
+                             executable, args, NODESTATUS_TIMEOUT)
 
         return None
 
@@ -333,10 +334,11 @@ class AbstractOSInterface(ABC):
                     return True
 
                 else:
-                    print(stdout, stderr, file=sys.stderr)
+                    logger.error('stopworker failed for %s: stdout=%s, stderr=%s',
+                                 node_hostname, stdout, stderr)
 
             except asyncio.TimeoutError:
-                print(f'Command {executable} {args} timed-out after '
-                      f'{STOPWORKER_TIMEOUT}s.', file=sys.stderr)
+                logger.error('Command %s %s timed-out after %ds.',
+                             executable, args, STOPWORKER_TIMEOUT)
 
         return False

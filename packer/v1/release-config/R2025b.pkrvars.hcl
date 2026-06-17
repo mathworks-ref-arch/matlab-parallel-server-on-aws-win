@@ -14,7 +14,9 @@ STARTUP_SCRIPTS = [
   "60_Sync-MJS-Files.ps1",
   "65_Run-Optional-User-Command.ps1",
   "70_Start-MJS.ps1",
-  "80_Add-SpotInstanceMonitoring.ps1"
+  "80_Add-SpotInstanceMonitoring.ps1",
+  "90_Setup-Autoscaling.ps1",
+  "Setup-MJSHostname.ps1"
 ]
 RUNTIME_SCRIPTS = [
   "autoscaling",

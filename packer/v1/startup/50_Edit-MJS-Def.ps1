@@ -1,4 +1,4 @@
-# Copyright 2022-2023 The MathWorks, Inc.
+# Copyright 2022-2026 The MathWorks, Inc.
 
 # This script defines MATLAB Job Scheduler Startup Parameters
 # https://www.mathworks.com/help/matlab-parallel-server/define-startup-parameters.html
@@ -87,18 +87,6 @@ If (-not $Env:MLMLicenseFile) {
 If (($Env:NodeType -eq 'headnode') -and ($Env:EnableAutoscaling -eq 'Yes')) {
     If ($Env:MATLABRelease -ge 'R2022a') {
         Edit-MJSDef -ParameterName 'MAX_WINDOWS_WORKERS' -ParameterValue "$(1*$Env:MaxNodes*$Env:WorkersPerNode)"
-
-        # Create Task Scheduler task
-        $TaskName = 'Autoscaling Task for MATLAB Parallel Server'
-        schtasks /query /tn $TaskName
-        If ($LastExitCode -eq 0) {
-            Write-Output 'Autoscaling task already exists'
-        } Else {
-            Write-Output 'Creating autoscaling task'
-            $TaskCommand = "cmd /c '$Env:ProgramFiles\MathWorks\autoscaling\autoscaling.py'"
-            $PeriodInMinutes = 1
-            schtasks /create /tn $TaskName /sc minute /mo $PeriodInMinutes /tr $TaskCommand /ru System
-        }
     } Else {
         Write-Output 'WARNING: Auto-Resizing is only available for R2022a and later'
     }

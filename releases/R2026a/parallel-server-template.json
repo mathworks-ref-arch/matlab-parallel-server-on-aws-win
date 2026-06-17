@@ -3,7 +3,7 @@
   "Mappings": {
     "RegionMap": {
       "us-east-1": {
-        "AMI": "ami-035df5876b8cdc513"
+        "AMI": "ami-04d74f41ae58c9841"
       },
       "us-east-2": {
         "AMI": "Enter the ID of a custom AMI in this region."
@@ -12,7 +12,7 @@
         "AMI": "Enter the ID of a custom AMI in this region."
       },
       "us-west-2": {
-        "AMI": "ami-0f46ba117c8d359d7"
+        "AMI": "ami-0473e80e95e40bd17"
       },
       "ca-central-1": {
         "AMI": "Enter the ID of a custom AMI in this region."
@@ -21,7 +21,7 @@
         "AMI": "Enter the ID of a custom AMI in this region."
       },
       "eu-west-1": {
-        "AMI": "ami-0c45ed47de12f4ae6"
+        "AMI": "ami-0fa8166964cb9cd14"
       },
       "eu-west-2": {
         "AMI": "Enter the ID of a custom AMI in this region."
@@ -45,7 +45,7 @@
         "AMI": "Enter the ID of a custom AMI in this region."
       },
       "ap-northeast-1": {
-        "AMI": "ami-0f83a38e3355f4cd0"
+        "AMI": "ami-0480352320af866cf"
       },
       "ap-northeast-2": {
         "AMI": "Enter the ID of a custom AMI in this region."
@@ -303,33 +303,46 @@
         "IamInstanceProfile": {
           "Ref": "HeadnodeInstanceProfile"
         },
-        "SecurityGroupIds": [
+        "NetworkInterfaces": [
           {
-            "Fn::GetAtt": [
-              "MWSecurityGroup",
-              "Outputs.SecurityGroupId"
-            ]
-          },
-          {
-            "Fn::If": [
-              "AddSG",
+            "AssociatePublicIpAddress": {
+              "Fn::If": [
+                "UsePublicIp",
+                true,
+                false
+              ]
+            },
+            "DeviceIndex": "0",
+            "Description": "Primary Network Interface for the MATLAB Parallel Server headnode",
+            "SubnetId": {
+              "Fn::Select": [
+                0,
+                {
+                  "Ref": "Subnets"
+                }
+              ]
+            },
+            "GroupSet": [
               {
-                "Ref": "AdditionalSecurityGroup"
+                "Fn::GetAtt": [
+                  "MWSecurityGroup",
+                  "Outputs.SecurityGroupId"
+                ]
               },
               {
-                "Ref": "AWS::NoValue"
+                "Fn::If": [
+                  "AddSG",
+                  {
+                    "Ref": "AdditionalSecurityGroup"
+                  },
+                  {
+                    "Ref": "AWS::NoValue"
+                  }
+                ]
               }
             ]
           }
         ],
-        "SubnetId": {
-          "Fn::Select": [
-            0,
-            {
-              "Ref": "Subnets"
-            }
-          ]
-        },
         "KeyName": {
           "Ref": "RDPKeyName"
         },
@@ -379,16 +392,15 @@
               "\n",
               [
                 "<powershell>",
-                "# Copyright 2022-2023 The MathWorks, Inc.",
+                "# Copyright 2022-2026 The MathWorks, Inc.",
                 "",
+                "Start-Transcript -Path $Env:ProgramData\\MathWorks\\startup.log -Append | Out-Host",
                 "$StartupFolder = \"$Env:ProgramFiles\\MathWorks\\startup\"",
-                "# Load startup variables",
-                "If (Test-Path $StartupFolder\\env.ps1) {",
-                "    . $StartupFolder\\env.ps1",
-                "}",
-                "",
                 "# Define startup parameters",
                 "$Env:NodeType = 'headnode'",
+                {
+                  "Fn::Sub": "$Env:CommunicationMode = '${ClusterCommunicationMode}'"
+                },
                 {
                   "Fn::Sub": "$Env:WorkersPerNode = ${NumWorkersPerNode}"
                 },
@@ -427,8 +439,16 @@
                   "Fn::Sub": "$Env:OptionalUserCommand='${OptionalUserCommand}'"
                 },
                 "",
+                "# Load startup variables",
+                "If (Test-Path $StartupFolder\\env.ps1) {",
+                "    . $StartupFolder\\env.ps1",
+                "    . $StartupFolder\\Setup-MJSHostname.ps1",
+                "    Write-Host '--- Environment variables after sourcing ---'",
+                "    Get-ChildItem Env: | Sort-Object Name | ForEach-Object { Write-Host \"$($_.Name) = $($_.Value)\" }",
+                "    Write-Host '--- End of sourced environment variables ---'",
+                "}",
+                "",
                 "# Run startup scripts",
-                "Start-Transcript -Path $Env:ProgramData\\MathWorks\\startup.log -Append | Out-Host",
                 "try {",
                 "    Get-ChildItem $StartupFolder | Where-Object { $_ -match '^[0-9]+_.+$' } | Sort-Object | ForEach-Object {",
                 "        Write-Host \"startup: executing $_\"",
@@ -464,21 +484,34 @@
       "Type": "AWS::EC2::LaunchTemplate",
       "Properties": {
         "LaunchTemplateData": {
-          "SecurityGroupIds": [
+          "NetworkInterfaces": [
             {
-              "Fn::GetAtt": [
-                "MWSecurityGroup",
-                "Outputs.SecurityGroupId"
-              ]
-            },
-            {
-              "Fn::If": [
-                "AddSG",
+              "DeviceIndex": 0,
+              "AssociatePublicIpAddress": {
+                "Fn::If": [
+                  "UsePublicIp",
+                  true,
+                  false
+                ]
+              },
+              "Description": "Primary Network Interface for MATLAB Parallel Server worker node",
+              "Groups": [
                 {
-                  "Ref": "AdditionalSecurityGroup"
+                  "Fn::GetAtt": [
+                    "MWSecurityGroup",
+                    "Outputs.SecurityGroupId"
+                  ]
                 },
                 {
-                  "Ref": "AWS::NoValue"
+                  "Fn::If": [
+                    "AddSG",
+                    {
+                      "Ref": "AdditionalSecurityGroup"
+                    },
+                    {
+                      "Ref": "AWS::NoValue"
+                    }
+                  ]
                 }
               ]
             }
@@ -535,16 +568,61 @@
                 "\n",
                 [
                   "<powershell>",
-                  "# Copyright 2022-2023 The MathWorks, Inc.",
+                  "# Copyright 2022-2026 The MathWorks, Inc.",
                   "",
+                  "Start-Transcript -Path $Env:ProgramData\\MathWorks\\startup.log -Append",
                   "$StartupFolder = \"$Env:ProgramFiles\\MathWorks\\startup\"",
-                  "# Load startup variables",
-                  "If (Test-Path $StartupFolder\\env.ps1) {",
-                  "    . $StartupFolder\\env.ps1",
-                  "}",
-                  "",
                   "# Define startup parameters",
                   "$Env:NodeType = 'worker'",
+                  {
+                    "Fn::Sub": "$Env:CommunicationMode = '${ClusterCommunicationMode}'"
+                  },
+                  "# Configure HEADNODE_HOSTNAME as seen by workers: public/private DNS name, or private IP",
+                  {
+                    "Fn::Sub": [
+                      "$Env:HeadnodeHostname = '${ResolvedHeadnodeAddress}'",
+                      {
+                        "ResolvedHeadnodeAddress": {
+                          "Fn::If": [
+                            "UsePublicIp",
+                            {
+                              "Fn::GetAtt": [
+                                "Headnode",
+                                "PublicDnsName"
+                              ]
+                            },
+                            {
+                              "Fn::If": [
+                                "UsePrivateDNSNames",
+                                {
+                                  "Fn::Select": [
+                                    "0",
+                                    {
+                                      "Fn::Split": [
+                                        ".",
+                                        {
+                                          "Fn::GetAtt": [
+                                            "Headnode",
+                                            "PrivateDnsName"
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "Fn::GetAtt": [
+                                    "Headnode",
+                                    "PrivateIp"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
                   {
                     "Fn::Sub": "$Env:WorkersPerNode = ${NumWorkersPerNode}"
                   },
@@ -580,14 +658,18 @@
                     "Fn::Sub": "$Env:HeadnodeLocalIP = '${Headnode.PrivateIp}'"
                   },
                   {
-                    "Fn::Sub": "$Env:HeadnodeHostname = '${Headnode.PublicDnsName}'"
-                  },
-                  {
                     "Fn::Sub": "$Env:OptionalUserCommand='${OptionalUserCommand}'"
                   },
+                  "# Load startup variables",
+                  "If (Test-Path $StartupFolder\\env.ps1) {",
+                  "    . $StartupFolder\\env.ps1",
+                  "    . $StartupFolder\\Setup-MJSHostname.ps1",
+                  "    Write-Host '--- Environment variables after sourcing ---'",
+                  "    Get-ChildItem Env: | Sort-Object Name | ForEach-Object { Write-Host \"$($_.Name) = $($_.Value)\" }",
+                  "    Write-Host '--- End of sourced environment variables ---'",
+                  "}",
                   "",
                   "# Run startup scripts",
-                  "Start-Transcript -Path $Env:ProgramData\\MathWorks\\startup.log -Append",
                   "Get-ChildItem $StartupFolder | Where-Object { $_ -match '^[0-9]+_.+$' } | Sort-Object | ForEach-Object {",
                   "    Write-Output \"startup: executing $_\"",
                   "    $Start = Get-Date",
@@ -813,10 +895,20 @@
       "AllowedPattern": ".+"
     },
     "Subnets": {
-      "Description": "List of existing public subnets IDs for the head node and workers",
+      "Description": "List of existing subnets IDs for the head node and workers.",
       "Type": "List<AWS::EC2::Subnet::Id>",
-      "ConstraintDescription": "Must be the ID of existing public subnets within the chosen VPC.",
+      "ConstraintDescription": "Must be the ID of existing subnets within the chosen VPC.",
       "AllowedPattern": ".+"
+    },
+    "ClusterCommunicationMode": {
+      "Description": "Select the communication mode for the cluster. 'PublicDNS': Clients communicate with the cluster using the internet. 'PrivateIP': Cluster nodes expose their Private IPv4 addresses for client-cluster and intra-cluster communication. 'PrivateDNS': Cluster nodes use private DNS names of the form <hostname>.<dns_search_suffix> for client-cluster and intra-cluster communication. Ensure that these names are resolvable within the cluster VPC and by the clients. For details about using a private network configuration, see [Configure Private Network](#configure-private-network).",
+      "Type": "String",
+      "AllowedValues": [
+        "PublicDNS",
+        "PrivateIP",
+        "PrivateDNS"
+      ],
+      "Default": "PublicDNS"
     },
     "ClientIPAddress": {
       "Description": "Comma-separated list of IP address ranges that will be allowed to connect to the cluster. Each IP CIDR should be formatted as <ip_address>/<mask>. The mask determines the number of IP addresses to include. A mask of 32 is a single IP address. Example of allowed values: 10.0.0.1/32 or 10.0.0.0/16,192.34.56.78/32. This calculator can be used to build a specific range: https://www.ipaddressguide.com/cidr. You may need to contact your IT administrator to determine which address is appropriate.",
@@ -966,6 +1058,22 @@
     }
   },
   "Conditions": {
+    "UsePublicIp": {
+      "Fn::Equals": [
+        {
+          "Ref": "ClusterCommunicationMode"
+        },
+        "PublicDNS"
+      ]
+    },
+    "UsePrivateDNSNames": {
+      "Fn::Equals": [
+        {
+          "Ref": "ClusterCommunicationMode"
+        },
+        "PrivateDNS"
+      ]
+    },
     "OverrideAmi": {
       "Fn::Not": [
         {
@@ -1015,7 +1123,8 @@
       }
     },
     "HeadnodePublicDNS": {
-      "Description": "Public DNS name of the newly created EC2 instance",
+      "Condition": "UsePublicIp",
+      "Description": "Public DNS name of the headnode EC2 instance.",
       "Value": {
         "Fn::GetAtt": [
           "Headnode",
@@ -1024,7 +1133,7 @@
       }
     },
     "HeadnodePrivateDNS": {
-      "Description": "Private DNS name of the newly created EC2 instance",
+      "Description": "Private DNS name of the headnode EC2 instance",
       "Value": {
         "Fn::GetAtt": [
           "Headnode",
@@ -1105,6 +1214,7 @@
           "Parameters": [
             "VPC",
             "Subnets",
+            "ClusterCommunicationMode",
             "ClientIPAddress",
             "AdditionalSecurityGroup"
           ]
@@ -1171,6 +1281,9 @@
         },
         "RDPKeyName": {
           "default": "RDP Key Pair"
+        },
+        "ClusterCommunicationMode": {
+          "default": "Communication mode for the cluster"
         },
         "ClientIPAddress": {
           "default": "CIDR IP address range of client"

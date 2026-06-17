@@ -1,4 +1,4 @@
-# Copyright 2022-2023 The MathWorks, Inc.
+# Copyright 2022-2026 The MathWorks, Inc.
 
 If (-not (Test-Path $Env:SecurityRoot)) {
     New-Item -Path $Env:SecurityRoot -ItemType Directory
@@ -20,7 +20,7 @@ If ($Env:NodeType -eq 'headnode') {
 
     Write-Output '===Creating profile==='
     $WinTemp = [System.Environment]::GetEnvironmentVariable('TEMP','Machine')
-    $MJSHostname = $Env:PublicHostname
+    $MJSHostname = $Env:ExternalHostname
     $ProfileFile = "$WinTemp\$Env:JobManagerName.mlsettings"
     .\createProfile.bat -name "$Env:JobManagerName" -host $MJSHostname -certfile $Env:CertFile -outfile "$ProfileFile"
 

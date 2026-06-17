@@ -6,9 +6,12 @@ from .cloud_interface import (AbstractCloudInterface, CloudCapacity,
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime, timezone
+import logging
 import requests
-import sys
 from typing import Set
+
+
+logger = logging.getLogger('mw.autoscaling.aws_interface')
 
 
 # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
@@ -29,25 +32,40 @@ class AWSInterface(AbstractCloudInterface):
     __session: boto3.Session
 
     __asg_client: None
+    __ec2_client: None
     __asg_name: str
 
     _workers_per_node: int
 
-    def __init__(self) -> None:
+    def __init__(
+            self,
+            use_private_ip_mapping: bool = False,
+            dns_search_suffix: str = None
+        ) -> None:
         """Create AWSInterface object and set all necessary attributes.
 
         Headnode information is retrieved from the instance meta-data url.
         Auto Scaling group is identified through its name in the
         CloudFormation outputs.
         """
-        # Reading instance metadata.
+        # Get IMDSv2 session token
+        token = requests.put(
+            f'{IMDS_URL}/latest/api/token',
+            headers={'X-aws-ec2-metadata-token-ttl-seconds': '21600'}
+        ).text
+
+        imds_headers = {'X-aws-ec2-metadata-token': token}
+
+        # Get information from IMDS
         document = requests.get(
-            f'{IMDS_URL}/latest/dynamic/instance-identity/document'
+            f'{IMDS_URL}/latest/dynamic/instance-identity/document',
+            headers=imds_headers
         ).json()
 
         # Setting all necessary attributes
         self.__session = boto3.Session(region_name=document['region'])
         self.__asg_client = self.__session.client('autoscaling')
+        self.__ec2_client = self.__session.client('ec2')
 
         stack = self.__get_stack(document['instanceId'])
         self.__asg_name = self.__get_asg_name(stack.outputs)
@@ -56,6 +74,9 @@ class AWSInterface(AbstractCloudInterface):
         self._workers_per_node = self.__get_workers_per_node(
             stack.parameters, instance_type
         )
+
+        self.__use_private_ip_mapping = use_private_ip_mapping
+        self.__dns_suffix = dns_search_suffix
 
     def get_cloud_capacity(self) -> CloudCapacity:
         """Get the Amazon EC2 Auto Scaling group capacity info
@@ -98,16 +119,13 @@ class AWSInterface(AbstractCloudInterface):
                 if timeout_seconds >= 0:
                     return timeout_seconds
 
-                print(f'Value "{timeout_minutes}" is negative.',
-                          file=sys.stderr)
+                logger.error('Value "%s" is negative.', timeout_minutes)
 
             except StopIteration:
-                print(f'Tag "{IDLE_TIMEOUT_TAG}" was not found.',
-                      file=sys.stderr)
+                logger.error('Tag "%s" was not found.', IDLE_TIMEOUT_TAG)
 
             except ValueError:
-                print(f'Value "{timeout_minutes}" is not a number.',
-                      file=sys.stderr)
+                logger.error('Value "%s" is not a number.', timeout_minutes)
 
             self.__reset_idle_timeout()
 
@@ -139,11 +157,10 @@ class AWSInterface(AbstractCloudInterface):
             if len(nodes_ids) == 0:
                 return set()
 
-            ec2_client = self.__session.client('ec2')
-            ec2_data = ec2_client.describe_instances(InstanceIds=nodes_ids)
+            ec2_data = self.__ec2_client.describe_instances(InstanceIds=nodes_ids)
             now = datetime.now(timezone.utc)
             host_uptime = {
-                i['PrivateDnsName']: now - i['LaunchTime']
+                self.__get_hostname(i): now - i['LaunchTime']
                 for r in ec2_data['Reservations']
                 for i in r['Instances']
             }
@@ -178,7 +195,7 @@ class AWSInterface(AbstractCloudInterface):
             )
 
         except ClientError as e:
-            print(e, file=sys.stderr)
+            logger.error('Failed to set desired capacity: %s', e)
             return False
 
         return True
@@ -210,11 +227,11 @@ class AWSInterface(AbstractCloudInterface):
                     )
 
                 except ClientError as e:
-                    print(e, file=sys.stderr)
+                    logger.error('Failed to set instance health for %s: %s', hostname, e)
                     status = False
 
             else:
-                print(f'Unknown hostname {hostname}', file=sys.stderr)
+                logger.error('Unknown hostname %s', hostname)
                 status = False
 
         return status
@@ -250,7 +267,7 @@ class AWSInterface(AbstractCloudInterface):
                 nodes_success.update(map(id_to_host.get, ids_slice))
 
             except ClientError as e:
-                print(e, file=sys.stderr)
+                logger.error('Failed to set instance protection: %s', e)
 
         return nodes_success
 
@@ -267,8 +284,15 @@ class AWSInterface(AbstractCloudInterface):
         """
         spot_instance_action = None
         try:
+            # Get IMDSv2 session token
+            token = requests.put(
+                f'{IMDS_URL}/latest/api/token',
+                headers={'X-aws-ec2-metadata-token-ttl-seconds': '21600'}
+            ).text
+
             spot_instance_action = requests.head(
-             f'{IMDS_URL}/latest/meta-data/spot/instance-action'
+             f'{IMDS_URL}/latest/meta-data/spot/instance-action',
+             headers = {'X-aws-ec2-metadata-token': token}
             )
         except requests.ConnectionError:
             return False
@@ -292,12 +316,12 @@ class AWSInterface(AbstractCloudInterface):
             return asg_response['AutoScalingGroups'].pop()
 
         except (ClientError, IndexError, KeyError) as e:
-            print(e, file=sys.stderr)
+            logger.error('Failed to get ASG description: %s', e)
 
         return None
 
     def _get_host_to_id(self) -> dict:
-        """Get a mapping between instances private hostname and their id.
+        """Get a mapping between instances private hostname or IPv4 address and their id.
 
         Returns:
             host_to_id (dict): Hostname to instance id dictionary.
@@ -305,18 +329,38 @@ class AWSInterface(AbstractCloudInterface):
         host_to_id = {}
 
         asg_data = self._get_asg_description()
-        if asg_data:
-            nodes_ids = [i['InstanceId'] for i in asg_data['Instances']]
 
-            ec2_client = self.__session.client('ec2')
-            ec2_data = ec2_client.describe_instances(InstanceIds=nodes_ids)
+        if asg_data:
+            nodes_ids = [i["InstanceId"] for i in asg_data["Instances"]]
+
+            ec2_data = self.__ec2_client.describe_instances(InstanceIds=nodes_ids)
             host_to_id = {
-                i['PrivateDnsName']: i['InstanceId']
-                for r in ec2_data['Reservations']
-                for i in r['Instances']
+                self.__get_hostname(i): i["InstanceId"]
+                for r in ec2_data["Reservations"]
+                for i in r["Instances"]
+                if i["State"]["Name"] != "terminated"
             }
 
         return host_to_id
+    
+    def __get_hostname(self, instance: dict) -> str:
+        """Get the real hostname or private IPv4 address for an 
+        instance based on DNS suffix and IP mapping settings.
+        Relying on the dns suffix set by the caller method since
+        SDK calls do not return custom DNS suffix if the VPC has custom DNS enabled.
+
+        Args:
+            instance (dict): EC2 instance description dictionary.
+            
+        Returns:
+            str: The hostname to use for this instance.
+        """
+        if self.__use_private_ip_mapping:
+            # Use private IP
+            return instance['PrivateIpAddress']
+
+        local_hostname = instance['PrivateDnsName'].split('.')[0]
+        return f"{local_hostname}.{self.__dns_suffix}"
 
     def __get_asg_name(self, outputs) -> str:
         """Get the AutoScalingGroup name from the stack outputs."""
@@ -362,8 +406,8 @@ class AWSInterface(AbstractCloudInterface):
 
     def __reset_idle_timeout(self) -> None:
         """Reset the idle timeout with the default."""
-        print(f'Resetting {IDLE_TIMEOUT_TAG} tag to default '
-              f'{IDLE_TIMEOUT_DEFAULT}', file=sys.stderr)
+        logger.warning('Resetting %s tag to default %s',
+                       IDLE_TIMEOUT_TAG, IDLE_TIMEOUT_DEFAULT)
         self.__asg_client.create_or_update_tags(
             Tags=[{'ResourceId': self.__asg_name,
                    'ResourceType': 'auto-scaling-group',

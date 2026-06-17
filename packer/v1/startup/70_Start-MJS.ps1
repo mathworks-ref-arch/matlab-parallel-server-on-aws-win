@@ -12,27 +12,21 @@ New-NetFirewallRule -Name "parallelserver_outbound" -DisplayName "parallelserver
 
 # Ensure that all communication with the headnode occurs on the local network.
 If ($Env:NodeType -eq 'headnode') {
-    Add-Content "$Env:Windir\System32\drivers\etc\hosts" "$Env:LocalIPv4`t$Env:PublicHostname"
+    Add-Content "$Env:Windir\System32\drivers\etc\hosts" "$Env:LocalIPv4`t$Env:ExternalHostname"
+    $MJSHostname = $Env:ExternalHostname
 } Else {
-    Add-Content "$Env:Windir\System32\drivers\etc\hosts" "$Env:HeadnodeLocalIP`t$Env:HeadnodeHostname"
+    Add-Content "$Env:Windir\System32\drivers\etc\hosts" "$Env:HeadnodeLocalIP`t$Env:HeadnodeExternalHostname"
+    $MJSHostname = $Env:InternalHostname
 }
 
 # Ensure that the MATLAB client can connect directly to the workers. 
 # This is a necessary condition to create parpools.
-[Environment]::SetEnvironmentVariable('MDCE_OVERRIDE_EXTERNAL_HOSTNAME', $Env:PublicHostname, 'Machine')
-[Environment]::SetEnvironmentVariable('MDCE_OVERRIDE_INTERNAL_HOSTNAME', $Env:LocalHostname, 'Machine')
+[Environment]::SetEnvironmentVariable('MDCE_OVERRIDE_EXTERNAL_HOSTNAME', $Env:ExternalHostname, 'Machine')
+[Environment]::SetEnvironmentVariable('MDCE_OVERRIDE_INTERNAL_HOSTNAME', $Env:InternalHostname, 'Machine')
 
 # Configure MPI to use correct identifiers.
-[Environment]::SetEnvironmentVariable('MPICH_INTERFACE_HOSTNAME', $Env:LocalHostname, 'Machine')
+[Environment]::SetEnvironmentVariable('MPICH_INTERFACE_HOSTNAME', $Env:InternalHostname, 'Machine')
 [Environment]::SetEnvironmentVariable('MSMPI_ACCEPT_HOST', $Env:LocalIPv4, 'Machine')
-
-If ($Env:NodeType -eq 'headnode') {
-    # Hostname of the job manager.
-    $MJSHostname = $Env:PublicHostname
-} Else {
-    # Hostname of the worker node
-    $MJSHostname = $Env:LocalHostname
-}
 
 $MJSOpts = @(
     '-hostname', $MJSHostname,
