@@ -6,7 +6,8 @@ import json
 import logging
 from pathlib import Path
 import subprocess
-from typing import Dict, NamedTuple, Set
+import sys
+from typing import Dict, NamedTuple, Optional, Set
 
 
 logger = logging.getLogger('mw.autoscaling.os_interface')
@@ -20,6 +21,37 @@ STOPWORKER_TIMEOUT = 25
 
 # Seconds to wait for nodestatus execution
 NODESTATUS_TIMEOUT = 15
+
+# Seconds to wait for synchronous MATLAB Job Scheduler command-line tools (resize.bat, mjs.bat,
+# stopworker.bat, etc.) to complete. Without a timeout, the subprocess call
+# to invoke these tools might get stuck indefinitely
+SUBPROCESS_TIMEOUT = 30
+
+
+def _run_with_timeout(
+    args, timeout: int = SUBPROCESS_TIMEOUT, **kwargs
+) -> Optional[subprocess.CompletedProcess]:
+    """Run a subprocess with a timeout, logging and returning None if it expires.
+
+    Wraps subprocess.run so that a hung command-line tool cannot block the
+    autoscaling program forever. Callers treat a None result as a failure and
+    fall back to their usual safe default.
+
+    Args:
+        args: Command and arguments passed through to subprocess.run.
+        timeout (int): Seconds to wait before terminating the command.
+        **kwargs: Additional keyword arguments forwarded to subprocess.run.
+
+    Returns:
+        The CompletedProcess on success, or None if the command timed out.
+    """
+    try:
+        return subprocess.run(args, timeout=timeout, **kwargs)
+    except subprocess.TimeoutExpired:
+        logger.error('Command %s timed-out after %ds.', args, timeout)
+        print(f'Command {args} timed-out after {timeout}s.', file=sys.stderr)
+        return None
+
 
 class ClusterCapacity(NamedTuple):
     """Class defining the cluster capacity information."""
@@ -130,7 +162,10 @@ class AbstractOSInterface(ABC):
         executable = self._get_resize_executable()
         args = ['update', maxworkers_flag, str(maximum_workers)]
 
-        result = subprocess.run([executable, *args], capture_output=True)
+        result = _run_with_timeout([executable, *args], capture_output=True)
+        if result is None:
+            return False
+
         if result.returncode != 0:
             logger.error('Failed to set cluster capacity: %s', result.stdout)
 
@@ -146,12 +181,15 @@ class AbstractOSInterface(ABC):
             nodes_stopped (Set[str]): Hostname of nodes that were stoppped.
         """
         hostnames = list(nodes_hostnames)
-        tasks = [self._stop_workers_on_node(host)
-                 for host in hostnames]
 
-        results = asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(*tasks)
-        )
+        async def _run():
+            # asyncio.gather() requires a running event loop to schedule the
+            # coroutines. Wrapping it in asyncio.run() creates (and cleans up) a
+            # fresh loop each call
+            tasks = [self._stop_workers_on_node(host) for host in hostnames]
+            return await asyncio.gather(*tasks, return_exceptions=True)
+
+        results = asyncio.run(_run())
 
         # Make sure the workers actually stopped.
         current_hosts = self.get_worker_nodes()
@@ -159,7 +197,7 @@ class AbstractOSInterface(ABC):
         nodes_stopped = {
             host
             for host, status in zip(hostnames, results)
-            if status and (host not in current_hosts)
+            if status is True and (host not in current_hosts)
         }
         return nodes_stopped
 
@@ -174,7 +212,10 @@ class AbstractOSInterface(ABC):
         executable = self._get_stopworker_executable()
         args = ['-all']
 
-        result = subprocess.run([executable, *args], capture_output=True)
+        result = _run_with_timeout([executable, *args], capture_output=True)
+        if result is None:
+            return False
+
         if result.returncode == 0:
             return True
 
@@ -221,10 +262,15 @@ class AbstractOSInterface(ABC):
         executable = self._get_resize_executable()
         args = ['status']
 
-        result = subprocess.run([executable, *args], capture_output=True)
+        result = _run_with_timeout([executable, *args], capture_output=True)
+        if result is None:
+            return None
+
         if result.returncode == 0:
             output = json.loads(result.stdout)
-            return output['jobManagers'].pop()
+            if output['jobManagers']:
+                return output['jobManagers'].pop()
+            return None
 
         logger.error('Failed to get resize status: %s', result.stdout)
 
@@ -257,15 +303,17 @@ class AbstractOSInterface(ABC):
             and status.
         """
         hostnames = list(nodes_hostnames)
-        tasks = [self._get_workergroup_status(host)
-                 for host in hostnames]
 
-        results = asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(*tasks)
-        )
+        async def _run():
+            # See stop_workers_on_nodes: asyncio.run() supplies the event loop
+            # asyncio.gather() needs and cleans it up afterwards.
+            tasks = [self._get_workergroup_status(host) for host in hostnames]
+            return await asyncio.gather(*tasks, return_exceptions=True)
+
+        results = asyncio.run(_run())
 
         statuses = {
-            host: status
+            host: (status if not isinstance(status, BaseException) else None)
             for host, status in zip(hostnames, results)
         }
 
@@ -304,6 +352,11 @@ class AbstractOSInterface(ABC):
             except asyncio.TimeoutError:
                 logger.error('Command %s %s timed-out after %ds.',
                              executable, args, NODESTATUS_TIMEOUT)
+                # asyncio.wait_for cancels the communicate() coroutine but does
+                # not terminate the child process; reap it so a hung
+                # nodestatus.bat/JVM cannot leak or hold the MJS_SEM slot.
+                proc.kill()
+                await proc.wait()
 
         return None
 
@@ -340,5 +393,9 @@ class AbstractOSInterface(ABC):
             except asyncio.TimeoutError:
                 logger.error('Command %s %s timed-out after %ds.',
                              executable, args, STOPWORKER_TIMEOUT)
+                # See _get_workergroup_status: reap the timed-out child so a
+                # hung stopworker.bat/JVM cannot leak or hold the MJS_SEM slot.
+                proc.kill()
+                await proc.wait()
 
         return False

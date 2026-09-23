@@ -58,7 +58,7 @@ Start-Process 'C:\Windows\Temp\dxwebsetup.exe' -ArgumentList "-q" -Wait
 
 "Install Python"
 Invoke-WebRequest -Uri $env:PYTHON_INSTALLER_URL -OutFile .\python.exe
-Start-Process .\python.exe -Wait -ArgumentList '/quiet InstallAllUsers=1'
+Start-Process .\python.exe -Wait -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1 TargetDir="C:\Program Files\Python"'
 Remove-Item .\python.exe
 
 ## Download and install Edge browser

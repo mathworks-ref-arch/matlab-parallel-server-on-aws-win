@@ -334,11 +334,12 @@ class AWSInterface(AbstractCloudInterface):
             nodes_ids = [i["InstanceId"] for i in asg_data["Instances"]]
 
             ec2_data = self.__ec2_client.describe_instances(InstanceIds=nodes_ids)
+            # Only map instances that are actually running or being created
             host_to_id = {
                 self.__get_hostname(i): i["InstanceId"]
                 for r in ec2_data["Reservations"]
                 for i in r["Instances"]
-                if i["State"]["Name"] != "terminated"
+                if i["State"]["Name"] in ("running", "pending")
             }
 
         return host_to_id

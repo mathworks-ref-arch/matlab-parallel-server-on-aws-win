@@ -82,7 +82,7 @@ If (-not $Env:MLMLicenseFile) {
     Edit-MJSDef -ParameterName 'USE_ONLINE_LICENSING' -ParameterValue 'true'
 }
 
-# Set up MJS Cluster for Auto-Resizing
+# Set up MATLAB Job Scheduler Cluster for Auto-Resizing
 # https://www.mathworks.com/help/matlab-parallel-server/set-up-your-mjs-cluster-for-resizing.html
 If (($Env:NodeType -eq 'headnode') -and ($Env:EnableAutoscaling -eq 'Yes')) {
     If ($Env:MATLABRelease -ge 'R2022a') {
@@ -100,3 +100,11 @@ If ($Env:SchedulingAlgorithm) {
         Write-Output 'WARNING: Selecting the scheduling algorithm is only available for R2023b and later'
     }
 }
+
+# Persist HOSTNAME in mjs_def so MATLAB Job Scheduler tools resolve a routable address.
+If ($Env:NodeType -eq 'headnode') {
+    $MJSHostname = $Env:ExternalHostname
+} Else {
+    $MJSHostname = $Env:InternalHostname
+}
+Edit-MJSDef -ParameterName 'HOSTNAME' -ParameterValue $MJSHostname

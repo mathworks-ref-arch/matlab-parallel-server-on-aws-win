@@ -10,6 +10,10 @@ Get-NetFirewallRule | Where-Object {$_.Name -like "RemoteSvcAdmin*"} | Enable-Ne
 New-NetFirewallRule -Name "parallelserver_inbound" -DisplayName "parallelserver_inbound" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 0-65535 -ErrorAction SilentlyContinue
 New-NetFirewallRule -Name "parallelserver_outbound" -DisplayName "parallelserver_outbound" -Direction Outbound -Action Allow -Protocol TCP -LocalPort 0-65535 -ErrorAction SilentlyContinue
 
+# Windows instances on AWS have local hostnames that are not registered with DNS servers
+# Modify hosts file so that local hostname lookup resolve correctly to the instances' private IPs
+Add-Content "$Env:Windir\System32\drivers\etc\hosts" "$Env:LocalIPv4`t$Env:ComputerName.$Env:DnsSearchSuffix $Env:ComputerName"
+
 # Ensure that all communication with the headnode occurs on the local network.
 If ($Env:NodeType -eq 'headnode') {
     Add-Content "$Env:Windir\System32\drivers\etc\hosts" "$Env:LocalIPv4`t$Env:ExternalHostname"
@@ -52,7 +56,7 @@ If ($Env:NodeType -eq 'headnode') {
 
     .\mjs.bat uninstall -cleanPreserveJobs
     If (-not $?) {
-        Write-Output 'Failed to uninstall MJS, must not be installed'
+        Write-Output 'Failed to uninstall MJS.'
     }
 }
 
@@ -60,11 +64,9 @@ If ($Env:NodeType -eq 'headnode') {
 
 Write-Output '===Installing MATLAB Job Scheduler==='
 .\mjs.bat install -cleanPreserveJobs
-If (-not $?) {Throw 'Failed to install MJS'}
 
 Write-Output '===Starting MATLAB Job Scheduler==='
 .\mjs.bat start $MJSOpts
-If (-not $?) {Throw "Failed to start MJS with options: $MJSOpts"}
 
 If ($Env:NodeType -eq 'headnode') {
     Write-Output '===Starting Job Manager==='

@@ -146,9 +146,9 @@ function Install-PolyspaceUsingMPM {
     catch [System.Management.Automation.ItemNotFoundException] { $null }
 
     # Point MATLAB Parallel Server at polyspace install
-    (Get-Content "C:\Program Files\MATLAB\$env:RELEASE\toolbox\parallel\bin\mjs_polyspace.conf") `
+    (Get-Content "${Env:MATLAB_ROOT}\toolbox\parallel\bin\mjs_polyspace.conf") `
         -replace '# POLYSPACE_SERVER_ROOT=C:.+$', "POLYSPACE_SERVER_ROOT=$PolyspaceRoot" |
-        Out-File -FilePath "C:\Program Files\MATLAB\$env:RELEASE\toolbox\parallel\bin\mjs_polyspace.conf" -Encoding ASCII
+        Out-File -FilePath "${Env:MATLAB_ROOT}\toolbox\parallel\bin\mjs_polyspace.conf" -Encoding ASCII
 
     Write-Output 'Done with Install-PolyspaceUsingMPM.'
 
@@ -171,9 +171,9 @@ function Setup-Components {
     "Set firewall rules for MATLAB"
     $env:RELEASE = $env:RELEASE.ToLower()
 
-    New-NetFirewallRule -DisplayName "MATLAB $env:RELEASE" -Name "MATLAB $env:RELEASE" -Action Allow -Program "C:\program files\matlab\$env:RELEASE\bin\win64\matlab.exe"
+    New-NetFirewallRule -DisplayName "MATLAB $env:RELEASE" -Name "MATLAB $env:RELEASE" -Action Allow -Program "${Env:MATLAB_ROOT}\bin\win64\matlab.exe"
     # mw_olm executable removed in R2023b
-    New-NetFirewallRule -DisplayName "mw_olm" -Name "mw_olm" -Action Allow -Program "C:\program files\matlab\$env:RELEASE\bin\win64\mw_olm.exe"
+    New-NetFirewallRule -DisplayName "mw_olm" -Name "mw_olm" -Action Allow -Program "${Env:MATLAB_ROOT}\bin\win64\mw_olm.exe"
     powershell -inputformat none -outputformat none -NonInteractive -Command "Add-MpPreference -ExclusionPath 'C:\Program Files\MATLAB'"
 
     "Set registry keys to disable pop-ups in Windows"

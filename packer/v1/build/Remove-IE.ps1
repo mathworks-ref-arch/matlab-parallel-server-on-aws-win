@@ -6,8 +6,15 @@
 $ErrorActionPreference = "Stop"
 
 "Remove Internet Explorer"
-Disable-WindowsOptionalFeature -FeatureName Internet-Explorer-Optional-amd64 -Online -NoRestart
-# If IE is not present still returns success
+# Disable the Internet Explorer optional feature if it exists. Windows Server 2025 and newer
+# do not ship with Internet Explorer. Guard on the feature being present, so the build is a
+# no-op on WS2025 while still disabling IE on WS2022 and earlier.
+$ieFeature = Get-WindowsOptionalFeature -Online -FeatureName Internet-Explorer-Optional-amd64 -ErrorAction SilentlyContinue
+if ($ieFeature) {
+    Disable-WindowsOptionalFeature -FeatureName Internet-Explorer-Optional-amd64 -Online -NoRestart
+} else {
+    "Internet Explorer optional feature not present (e.g. Windows Server 2025); nothing to disable."
+}
 
 # Add a registry entry to fix an issue when running "Invoke-WebRequest" from Optional Inline Command.
 $KeyPath = 'Registry::HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Internet Explorer\Main'

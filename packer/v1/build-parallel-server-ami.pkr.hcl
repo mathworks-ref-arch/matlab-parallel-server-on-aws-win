@@ -13,7 +13,7 @@ packer {
 
 variable "RELEASE" {
   type        = string
-  default     = "R2026a"
+  default     = "R2026b"
   description = "Target MATLAB release to install in the machine image, must start with \"R\"."
 
   validation {
@@ -24,7 +24,7 @@ variable "RELEASE" {
 
 variable "PRODUCTS" {
   type        = string
-  default     = "5G_Toolbox AUTOSAR_Blockset Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_Toolbox Automated_Driving_Toolbox Bioinformatics_Toolbox Bluetooth_Toolbox C2000_Microcontroller_Blockset Communications_Toolbox Computer_Vision_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DDS_Blockset DSP_HDL_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Deep_Learning_HDL_Toolbox Deep_Learning_Toolbox Econometrics_Toolbox Embedded_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Industrial_Communication_Toolbox Instrument_Control_Toolbox LTE_Toolbox Lidar_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Parallel_Server MATLAB_Report_Generator MATLAB_Test MATLAB_Web_App_Server Mapping_Toolbox Medical_Imaging_Toolbox Mixed-Signal_Blockset Model_Predictive_Control_Toolbox Motor_Control_Blockset Navigation_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Powertrain_Blockset Predictive_Maintenance_Toolbox RF_Blockset RF_PCB_Toolbox RF_Toolbox ROS_Toolbox Radar_Toolbox Reinforcement_Learning_Toolbox Requirements_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Satellite_Communications_Toolbox Sensor_Fusion_and_Tracking_Toolbox SerDes_Toolbox Signal_Integrity_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Battery Simscape_Driveline Simscape_Electrical Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Compiler Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_Fault_Analyzer Simulink_PLC_Coder Simulink_Real-Time Simulink_Report_Generator Simulink_Test SoC_Blockset Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Composer System_Identification_Toolbox Text_Analytics_Toolbox UAV_Toolbox Vehicle_Dynamics_Blockset Vehicle_Network_Toolbox Vision_HDL_Toolbox WLAN_Toolbox Wavelet_Toolbox Wireless_HDL_Toolbox Wireless_Testbench Wireless_Network_Toolbox Simulink_FMU_Builder Raspberry_Pi_Blockset STM32_Microcontroller_Blockset"
+  default     = "5G_Toolbox AUTOSAR_Blockset Aerospace_Blockset Aerospace_Toolbox Antenna_Toolbox Audio_Toolbox Automated_Driving_Toolbox Bioinformatics_Toolbox Bluetooth_Toolbox C2000_Microcontroller_Blockset Communications_Toolbox Computer_Vision_Toolbox Control_System_Toolbox Curve_Fitting_Toolbox DDS_Blockset DSP_HDL_Toolbox DSP_System_Toolbox Database_Toolbox Datafeed_Toolbox Deep_Learning_HDL_Toolbox Deep_Learning_Toolbox Econometrics_Toolbox Embedded_Coder Financial_Instruments_Toolbox Financial_Toolbox Fixed-Point_Designer Fuzzy_Logic_Toolbox GPU_Coder Global_Optimization_Toolbox HDL_Coder HDL_Verifier Image_Acquisition_Toolbox Image_Processing_Toolbox Industrial_Communication_Toolbox Instrument_Control_Toolbox LTE_Toolbox Point_Cloud_Toolbox MATLAB MATLAB_Coder MATLAB_Compiler MATLAB_Compiler_SDK MATLAB_Parallel_Server MATLAB_Report_Generator MATLAB_Test MATLAB_Web_App_Server Mapping_Toolbox Medical_Imaging_Toolbox Mixed-Signal_Blockset Model_Predictive_Control_Toolbox Motor_Control_Blockset Navigation_Toolbox Optimization_Toolbox Parallel_Computing_Toolbox Partial_Differential_Equation_Toolbox Phased_Array_System_Toolbox Powertrain_Blockset Predictive_Maintenance_Toolbox RF_Blockset RF_PCB_Toolbox RF_Toolbox ROS_Toolbox Radar_Toolbox Reinforcement_Learning_Toolbox Requirements_Toolbox Risk_Management_Toolbox Robotics_System_Toolbox Robust_Control_Toolbox Satellite_Communications_Toolbox Sensor_Fusion_and_Tracking_Toolbox SerDes_Toolbox Signal_Integrity_Toolbox Signal_Processing_Toolbox SimBiology SimEvents Simscape Simscape_Battery Simscape_Driveline Simscape_Electrical Simscape_Fluids Simscape_Multibody Simulink Simulink_3D_Animation Simulink_Check Simulink_Coder Simulink_Compiler Simulink_Control_Design Simulink_Coverage Simulink_Design_Optimization Simulink_Design_Verifier Simulink_Desktop_Real-Time Simulink_Fault_Analyzer Simulink_PLC_Coder Simulink_Real-Time Simulink_Report_Generator Simulink_Test SoC_Blockset Stateflow Statistics_and_Machine_Learning_Toolbox Symbolic_Math_Toolbox System_Composer System_Identification_Toolbox Text_Analytics_Toolbox UAV_Toolbox Vehicle_Dynamics_Blockset Vehicle_Network_Toolbox Vision_HDL_Toolbox WLAN_Toolbox Wavelet_Toolbox Wireless_HDL_Toolbox Wireless_Testbench Wireless_Network_Toolbox Simulink_FMU_Builder Raspberry_Pi_Blockset STM32_Microcontroller_Blockset"
   description = "Target products to install in the machine image, e.g. MATLAB SIMULINK."
 }
 
@@ -32,6 +32,12 @@ variable "SPKGS" {
   type        = string
   default     = "Deep_Learning_Toolbox_Model_for_AlexNet_Network Deep_Learning_Toolbox_Model_for_EfficientNet-b0_Network Deep_Learning_Toolbox_Model_for_GoogLeNet_Network Deep_Learning_Toolbox_Model_for_ResNet-101_Network Deep_Learning_Toolbox_Model_for_ResNet-18_Network Deep_Learning_Toolbox_Model_for_ResNet-50_Network Deep_Learning_Toolbox_Model_for_Inception-ResNet-v2_Network Deep_Learning_Toolbox_Model_for_Inception-v3_Network Deep_Learning_Toolbox_Model_for_DenseNet-201_Network Deep_Learning_Toolbox_Model_for_Xception_Network Deep_Learning_Toolbox_Model_for_MobileNet-v2_Network Deep_Learning_Toolbox_Model_for_Places365-GoogLeNet_Network Deep_Learning_Toolbox_Model_for_NASNet-Large_Network Deep_Learning_Toolbox_Model_for_NASNet-Mobile_Network Deep_Learning_Toolbox_Model_for_ShuffleNet_Network Deep_Learning_Toolbox_Model_for_DarkNet-19_Network Deep_Learning_Toolbox_Model_for_DarkNet-53_Network Deep_Learning_Toolbox_Model_for_VGG-16_Network Deep_Learning_Toolbox_Model_for_VGG-19_Network"
   description = "Target products to install in the machine image, e.g. MATLAB SIMULINK."
+}
+
+variable "MATLAB_INSTALL_PATH" {
+  type        = string
+  default     = "C:/Program Files/MATLAB"
+  description = "Target path for the MATLAB installation."
 }
 
 variable "POLYSPACE_PRODUCTS" {
@@ -48,8 +54,8 @@ variable "POLYSPACE_ROOT" {
 
 variable "BASE_AMI_NAME" {
   type        = string
-  default     = "Windows_Server-2022-English-Full-Base-*"
-  description = "Default AMI name refers to the Windows Server 2022 image provided by Microsoft."
+  default     = "Windows_Server-2025-English-Full-Base-*"
+  description = "Default AMI name refers to the Windows Server 2025 image provided by Microsoft."
 }
 
 variable "BUILD_SCRIPTS" {
@@ -105,7 +111,7 @@ variable "NVIDIA_DRIVER_INSTALLER_URL" {
 
 variable "PYTHON_INSTALLER_URL" {
   type        = string
-  default     = "https://www.python.org/ftp/python/3.10.5/python-3.10.5-amd64.exe"
+  default     = "https://www.python.org/ftp/python/3.14.4/python-3.14.4-amd64.exe"
   description = "The URL to install python into the target machine image."
 }
 
@@ -236,6 +242,7 @@ variable "AWS_INSTANCE_PROFILE" {
 # Set up local variables used by provisioners.
 locals {
   timestamp             = regex_replace(timestamp(), "[- TZ:]", "")
+  matlab_root           = "${trim(var.MATLAB_INSTALL_PATH, "/")}/${var.RELEASE}"
   build_scripts         = [for s in var.BUILD_SCRIPTS : format("build/%s", s)]
   startup_scripts       = [for s in var.STARTUP_SCRIPTS : format("startup/%s", s)]
   runtime_scripts       = [for s in var.RUNTIME_SCRIPTS : format("runtime/%s", s)]
@@ -258,7 +265,10 @@ source "amazon-ebs" "AMI_Builder" {
   # Communicator setup
   ssh_username                 = "${var.PACKER_ADMIN_USERNAME}"
   ssh_interface                = "${var.SSH_INTERFACE}"
-  ssh_timeout                  = "10m" 
+  ssh_timeout                  = "20m"
+  # enableOpenSsh (EC2Launch v2) leaves the interactive default shell as cmd, so use the sftp
+  # subsystem for file provisioners (Win32-OpenSSH scp fails on the mark-of-the-web).
+  ssh_file_transfer_method     = "sftp"
 
   # Optional bastion host configuration
   ssh_bastion_host             = "${var.SSH_BASTION_HOST}"
@@ -323,8 +333,8 @@ source "amazon-ebs" "AMI_Builder" {
   ami_users            = "${var.AWS_ACCESS_USERS}"
   snapshot_users       = "${var.AWS_ACCESS_USERS}"
 
-  run_tags                                  = "${var.INSTANCE_TAGS}"
-  tags                                      = "${var.AMI_TAGS}"
+  run_tags             = "${var.INSTANCE_TAGS}"
+  tags                 = "${var.AMI_TAGS}"
 
   # Inject SSH setup script as user-data
   user_data        = templatefile("build/config/packer/enable_openssh.pkrtpl.hcl", {})
@@ -371,6 +381,7 @@ build {
       "SPKGS=${var.SPKGS}",
       "POLYSPACE_PRODUCTS=${var.POLYSPACE_PRODUCTS}",
       "PYTHON_INSTALLER_URL=${var.PYTHON_INSTALLER_URL}",
+      "MATLAB_ROOT=${local.matlab_root}",
       "MATLAB_SOURCE_URL=${var.MATLAB_SOURCE_URL}",
       "MSA_URL=${local.effective_msa_url}",
       "SUPPORT_PACKAGE_URL=${var.SUPPORT_PACKAGE_URL}",

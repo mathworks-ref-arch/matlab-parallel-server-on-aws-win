@@ -19,6 +19,33 @@ if ($Env:MATLAB_SOURCE_URL) {
     $MATLABSourcePath = 'X:\matlab_source'
 }
 
+function Set-SupportPackageRoot {
+
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Release,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Destination,
+
+        [Parameter(Mandatory = $true)]
+        [string] $MATLABRoot
+    )
+    # Ensure that the destination directory exists
+    if (-not (Test-Path -Path $Destination)) {
+        New-Item -Path $Destination -ItemType Directory -Force | Out-Null
+    }
+
+    if ( $Release -gt "R2024b" ) {
+        $SprootWriterPath = Join-Path -Path "${MATLABRoot}" -ChildPath "bin\win64\sprootsettingwriter.exe"
+        New-Item -Path "${Destination}" -ItemType Directory -Force | Out-Null    
+        & "${SprootWriterPath}" -matlabroot "$MATLABRoot" -sproot "${Destination}"
+    } else {
+        Set-Content -Path "$MATLABRoot\toolbox\local\supportpackagerootsetting.xml" -Value "<?xml version=`"1.0`" encoding=`"UTF-8`"?><SupportPackageRootSettings><Setting name=`"sproot`">$Destination</Setting></SupportPackageRootSettings>"
+    }
+
+}
+
 function Install-MATLABSPKGUsingMPM {
 
   param(
@@ -58,7 +85,7 @@ function Install-MATLABSPKGUsingMPM {
           Mount-DataDrive -DriveToMount "$SpkgSourceDrive"
           Get-MATLABSourceFiles -SourceURL $SourceURL -Destination "$SpkgSourcePath"
 
-          Copy-Item -Path "$Env:ProgramFiles\MATLAB\${Release}\VersionInfo.xml" -Destination "$SpkgSourcePath"
+          Copy-Item -Path "${Env:MATLAB_ROOT}\VersionInfo.xml" -Destination "$SpkgSourcePath"
 
           $SourcePath = Get-ChildItem -Path "$SpkgSourcePath" -Directory -Recurse -Filter 'archives' | Select-Object -First 1 -ExpandProperty FullName
 
@@ -124,6 +151,10 @@ try {
         $SpkgSourceDrive = 'X'
         $SpkgSourcePath = 'X:\spkg_source'
     }
+
+    $DefaultSpkgRoot = "${Env:MATLAB_ROOT}\supportpackages"
+
+    Set-SupportPackageRoot -Release $Env:RELEASE -Destination "${DefaultSpkgRoot}" -MATLABRoot "${Env:MATLAB_ROOT}"
 
     Install-MATLABSupportPackages -Release $Env:RELEASE -Products $Env:SPKGS -SourceURL $Env:SUPPORT_PACKAGE_URL
 

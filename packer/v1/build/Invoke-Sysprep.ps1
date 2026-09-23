@@ -7,8 +7,8 @@ $ErrorActionPreference = "Stop"
 
 $WindowsVersion = (Get-ComputerInfo).OsName
 
-if ($WindowsVersion -eq "Microsoft Windows Server 2022 Datacenter") {
-    # Ec2launch v2 for Windows Server 2022
+if ($WindowsVersion -match "Microsoft Windows Server (2022|2025)") {
+    # Ec2launch v2 for Windows Server 2022 and 2025
     # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2launch-v2-settings.html#ec2launch-v2-cli
     & "$env:ProgramFiles\Amazon\EC2Launch\ec2launch.exe" reset --clean
     & "$env:ProgramFiles\Amazon\EC2Launch\ec2launch.exe" sysprep --clean
