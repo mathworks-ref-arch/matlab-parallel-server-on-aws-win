@@ -1,0 +1,4 @@
+# Copyright 2026 The MathWorks, Inc.
+
+pytest>=9,<10
+boto3>=1,<2
